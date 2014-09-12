@@ -2,7 +2,8 @@
     <color name="primaryColor">#673ab7</color>
     <color name="primaryColorDark">#512da8</color>
     <color name="primaryFallback">#d1c4e9</color>
-    <color name="accentColorFallback">#fbe9e7</color>
+    <color name="accentColorFallback">#e7e9fd</color>
+    <color name="accentColor">#009688</color>
     <!-- Base application theme. -->
     <style name="AppTheme" parent="android:Theme.Material.Light">
         <item name="android:colorControlHighlight">@color/primaryFallback</item>

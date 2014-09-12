@@ -7,6 +7,7 @@ import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.style.RelativeSizeSpan;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.widget.TextView;
 
 import java.util.concurrent.TimeUnit;
@@ -18,8 +19,14 @@ public class TimerTextView extends TextView {
 
     private Handler h = new Handler();
     private long timerStartTimeMs = -1;
-    private boolean isTimerActive = false;
     private RelativeSizeSpan span = new RelativeSizeSpan(0.5f);
+    private TimerStatus currentStatus = TimerStatus.STOPPED;
+
+    public static enum TimerStatus {
+        STARTED,
+        STOPPED,
+        PAUSED
+    }
 
     public TimerTextView(Context context) {
         super(context);
@@ -43,9 +50,16 @@ public class TimerTextView extends TextView {
     }
 
     public void stopTimer() {
-        isTimerActive = false;
+        currentStatus = TimerStatus.STOPPED;
         h.removeCallbacks(timerTicker);
         setTimerStartTimeMs(-1);
+    }
+
+    public void pauseTimer() {
+        if (currentStatus == TimerStatus.STARTED) {
+            currentStatus = TimerStatus.PAUSED;
+            h.removeCallbacks(timerTicker);
+        }
     }
 
     public void startTimer() {
@@ -53,14 +67,13 @@ public class TimerTextView extends TextView {
     }
 
     public void startTimer(long timeMs) {
-        if (!isTimerActive) {
-            if (timeMs == -1) {
-                timeMs = System.currentTimeMillis();
-            }
-            setTimerStartTimeMs(timeMs);
-            isTimerActive = true;
-            h.postDelayed(timerTicker, 1000);
+        if (timeMs == -1) {
+            timeMs = System.currentTimeMillis();
         }
+        setTimerStartTimeMs(timeMs);
+        currentStatus = TimerStatus.STARTED;
+        updateText();
+        h.postDelayed(timerTicker, 1000);
     }
 
     public void setTimerStartTimeMs(long timeMs) {
@@ -86,15 +99,15 @@ public class TimerTextView extends TextView {
     private Runnable timerTicker = new Runnable() {
         @Override
         public void run() {
-            if (isTimerActive) {
+            if (currentStatus == TimerStatus.STARTED) {
                 updateText();
                 h.postDelayed(timerTicker, 1000);
             }
         }
     };
 
-    public boolean isTimerActive() {
-        return isTimerActive;
+    public TimerStatus getCurrentTimerStatus() {
+        return currentStatus;
     }
 
     public long getTimerStartTimeMs() {

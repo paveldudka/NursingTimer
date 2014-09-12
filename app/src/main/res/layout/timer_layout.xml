@@ -36,4 +36,33 @@
         android:background="?android:selectableItemBackground"
         android:fontFamily="sans-serif-light"
         />
+
+    <LinearLayout
+        android:id="@+id/timerControlPanel"
+        android:layout_height="match_parent"
+        android:layout_width="wrap_content"
+        android:layout_alignStart="@+id/timer"
+        android:background="@color/accentColor"
+        style="?android:buttonBarStyle"
+        android:elevation="3dip"
+        android:focusable="true"
+        android:focusableInTouchMode="true"
+        android:orientation="horizontal"
+        android:visibility="gone">
+        <ImageButton
+            android:id="@+id/timerStop"
+            android:layout_width="0dip"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:src="@drawable/ic_action_stop"
+            style="?android:buttonBarButtonStyle"
+            />
+        <ImageButton
+            android:id="@+id/timerReset"
+            android:layout_width="0dip"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            style="?android:buttonBarButtonStyle"
+            android:src="@drawable/ic_action_replay"/>
+        </LinearLayout>
 </merge>
