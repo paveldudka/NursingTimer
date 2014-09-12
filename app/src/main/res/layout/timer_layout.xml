@@ -10,7 +10,7 @@
         android:layout_height="match_parent"
         android:layout_width="48dip"
         android:src="@drawable/sleep"
-        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
         android:layout_marginStart="@dimen/activity_horizontal_margin"
         android:layout_gravity="center_vertical"/>
     <ImageView
@@ -19,22 +19,21 @@
         android:layout_width="72dip"
         android:src="@android:drawable/ic_lock_idle_alarm"
         android:padding="@dimen/alarm_icon_padding"
-        android:layout_toLeftOf="@+id/timer"
+        android:layout_toStartOf="@+id/timer"
         android:clickable="true"
         android:background="?android:selectableItemBackground"
         android:layout_gravity="center_vertical"/>
-    <TextView
+    <trickyandroid.com.nursingtimer.widgets.TimerTextView
         android:id="@+id/timer"
         android:layout_height="match_parent"
         android:layout_width="wrap_content"
-        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
         android:gravity="center_vertical"
-        android:paddingEnd="@dimen/activity_horizontal_margin"
         android:paddingStart="@dimen/activity_horizontal_margin"
+        android:paddingEnd="@dimen/activity_horizontal_margin"
         style="@style/Display1TextStyle"
         android:clickable="true"
         android:background="?android:selectableItemBackground"
         android:fontFamily="sans-serif-light"
-        android:text="03:00"
         />
 </merge>
