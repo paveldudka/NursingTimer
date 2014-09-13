@@ -1,13 +1,13 @@
 package trickyandroid.com.nursingtimer.widgets;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.os.Handler;
 import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.style.RelativeSizeSpan;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.widget.TextView;
 
 import java.util.concurrent.TimeUnit;
@@ -21,6 +21,7 @@ public class TimerTextView extends TextView {
     private long timerStartTimeMs = -1;
     private RelativeSizeSpan span = new RelativeSizeSpan(0.5f);
     private TimerStatus currentStatus = TimerStatus.STOPPED;
+    private float initialTextAlpha = 1f;
 
     public static enum TimerStatus {
         STARTED,
@@ -29,19 +30,24 @@ public class TimerTextView extends TextView {
     }
 
     public TimerTextView(Context context) {
-        super(context);
+        this(context, null);
     }
 
     public TimerTextView(Context context, AttributeSet attrs) {
-        super(context, attrs);
+        this(context, attrs, 0);
     }
 
     public TimerTextView(Context context, AttributeSet attrs, int defStyleAttr) {
-        super(context, attrs, defStyleAttr);
+        this(context, attrs, 0, 0);
     }
 
     public TimerTextView(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
         super(context, attrs, defStyleAttr, defStyleRes);
+        init();
+    }
+
+    private void init() {
+        this.initialTextAlpha = Color.alpha(getCurrentTextColor());
     }
 
     public void resetTimer() {
@@ -64,6 +70,12 @@ public class TimerTextView extends TextView {
 
     public void startTimer() {
         startTimer(timerStartTimeMs);
+    }
+
+    @Override
+    public void setAlpha(float alpha) {
+        int color = getCurrentTextColor();
+        setTextColor(Color.argb((int) (initialTextAlpha * alpha), Color.red(color), Color.green(color), Color.blue(color)));
     }
 
     public void startTimer(long timeMs) {

@@ -1,14 +1,15 @@
 package trickyandroid.com.nursingtimer.widgets;
 
+import android.animation.Animator;
+import android.animation.AnimatorSet;
+import android.animation.ObjectAnimator;
 import android.content.Context;
 import android.graphics.ColorFilter;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffColorFilter;
-import android.graphics.Rect;
 import android.os.Bundle;
 import android.os.Parcelable;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewTreeObserver;
@@ -31,6 +32,16 @@ public abstract class TimerLayout extends RelativeLayout implements View.OnClick
     TimerTextView timerText;
     @InjectView(R.id.timerControlPanel)
     View controlPanel;
+    @InjectView(R.id.timerDetailsSection)
+    View timerDetailsSection;
+    @InjectView(R.id.timerStart)
+    ImageView timerStartBtn;
+    @InjectView(R.id.timerStop)
+    ImageView timerStopBtn;
+    @InjectView(R.id.alarmIcon)
+    ImageView alarmBtn;
+
+    private static final float INACTIVE_ALPHA = .5f;
 
     boolean isControlPanelVisible = false;
 
@@ -54,14 +65,17 @@ public abstract class TimerLayout extends RelativeLayout implements View.OnClick
     void init() {
         inflate(getContext(), R.layout.timer_layout, this);
         ButterKnife.inject(this);
-        setBackgroundColor(getContext().getResources().getColor(R.color.accentColorFallback));
         timerIcon.setImageResource(getIconResId());
         timerText.setOnClickListener(this);
         timerText.setTimerStartTimeMs(-1);
-        findViewById(R.id.timerStop).setOnClickListener(this);
-        findViewById(R.id.timerReset).setOnClickListener(this);
-        setSaveEnabled(true);
+        timerStopBtn.setOnClickListener(this);
+        timerStartBtn.setOnClickListener(this);
+        timerDetailsSection.setOnClickListener(this);
+        alarmBtn.setOnClickListener(this);
         applyAccents();
+
+        timerText.setAlpha(INACTIVE_ALPHA);
+        alarmBtn.setAlpha(INACTIVE_ALPHA);
     }
 
     private void applyAccents() {
@@ -73,12 +87,16 @@ public abstract class TimerLayout extends RelativeLayout implements View.OnClick
 
     @Override
     public void onClick(View view) {
+        if (getTimerStatus() == TimerTextView.TimerStatus.STOPPED && !isControlPanelVisible) {
+            showControlPanel();
+            return;
+        }
         switch (view.getId()) {
             case R.id.timerStop:
                 stopTimer();
                 hideControlPanel();
                 break;
-            case R.id.timerReset:
+            case R.id.timerStart:
                 resetTimer();
                 hideControlPanel();
                 break;
@@ -86,6 +104,26 @@ public abstract class TimerLayout extends RelativeLayout implements View.OnClick
                 showControlPanel();
                 break;
         }
+    }
+
+    private void fadeInViews(View... views) {
+        AnimatorSet set = new AnimatorSet();
+        Animator[] animators = new Animator[views.length];
+        for (int i = 0; i < views.length; i++) {
+            animators[i] = ObjectAnimator.ofFloat(views[i], View.ALPHA, 1);
+        }
+        set.playTogether(animators);
+        set.start();
+    }
+
+    private void fadeOutViews(View... views) {
+        AnimatorSet set = new AnimatorSet();
+        Animator[] animators = new Animator[views.length];
+        for (int i = 0; i < views.length; i++) {
+            animators[i] = ObjectAnimator.ofFloat(views[i], View.ALPHA, INACTIVE_ALPHA);
+        }
+        set.playTogether(animators);
+        set.start();
     }
 
     @Override
@@ -119,21 +157,33 @@ public abstract class TimerLayout extends RelativeLayout implements View.OnClick
         this.timerText.pauseTimer();
     }
 
-    public void resumeTimer() {
-        this.timerText.startTimer();
-    }
-
     public void stopTimer() {
         this.timerText.stopTimer();
+        fadeOutViews(this.timerText, this.alarmBtn);
+    }
+
+    public void resumeTimer() {
+        this.timerText.startTimer();
+        fadeInViews(this.timerText, this.alarmBtn);
     }
 
     public void resetTimer() {
         this.timerText.resetTimer();
+        fadeInViews(this.timerText, this.alarmBtn);
     }
 
     public void showControlPanel() {
-        if (controlPanel.getVisibility() == View.VISIBLE) {
+        if (isControlPanelVisible) {
             return;
+        }
+
+
+        if (timerText.getCurrentTimerStatus() == TimerTextView.TimerStatus.STOPPED) {
+            timerStartBtn.setImageResource(R.drawable.ic_action_play);
+            timerStopBtn.setVisibility(View.GONE);
+        } else {
+            timerStartBtn.setImageResource(R.drawable.ic_action_replay);
+            timerStopBtn.setVisibility(View.VISIBLE);
         }
 
         isControlPanelVisible = true;
@@ -152,7 +202,7 @@ public abstract class TimerLayout extends RelativeLayout implements View.OnClick
     }
 
     public void hideControlPanel() {
-        if (controlPanel.getVisibility() != View.VISIBLE) {
+        if (!isControlPanelVisible) {
             return;
         }
         isControlPanelVisible = false;
