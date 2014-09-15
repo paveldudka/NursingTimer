@@ -36,7 +36,6 @@ public class Utils {
 
     // Alpha level for time picker selection.
     public static final int SELECTED_ALPHA = 51;
-    public static final int SELECTED_ALPHA_THEME_DARK = 102;
     // Alpha level for fully opaque.
     public static final int FULL_ALPHA = 255;
 
@@ -131,8 +130,8 @@ public class Utils {
         Keyframe k2 = Keyframe.ofFloat(0.69f, increaseRatio);
         Keyframe k3 = Keyframe.ofFloat(1f, 1f);
 
-        PropertyValuesHolder scaleX = PropertyValuesHolder.ofKeyframe("scaleX", k0, k1, k2, k3);
-        PropertyValuesHolder scaleY = PropertyValuesHolder.ofKeyframe("scaleY", k0, k1, k2, k3);
+        PropertyValuesHolder scaleX = PropertyValuesHolder.ofKeyframe(View.SCALE_X, k0, k1, k2, k3);
+        PropertyValuesHolder scaleY = PropertyValuesHolder.ofKeyframe(View.SCALE_Y, k0, k1, k2, k3);
         ObjectAnimator pulseAnimator =
                 ObjectAnimator.ofPropertyValuesHolder(labelToAnimate, scaleX,
                         scaleY);

@@ -22,6 +22,7 @@ import android.widget.RelativeLayout;
 import butterknife.ButterKnife;
 import butterknife.InjectView;
 import trickyandroid.com.nursingtimer.R;
+import trickyandroid.com.nursingtimer.Utils;
 import trickyandroid.com.nursingtimer.widgets.timepicker.RadialPickerLayout;
 import trickyandroid.com.nursingtimer.widgets.timepicker.TimePickerDialog;
 
@@ -105,6 +106,7 @@ public abstract class TimerLayout extends RelativeLayout implements View.OnClick
             case R.id.timerStart:
                 resetTimer();
                 hideControlPanel();
+                Utils.getPulseAnimator(timerText, .95f, 1.05f).start();
                 break;
             case R.id.timer:
                 showControlPanel();
@@ -123,6 +125,10 @@ public abstract class TimerLayout extends RelativeLayout implements View.OnClick
         TimePickerDialog tpd = TimePickerDialog.newInstance(new TimePickerDialog.OnTimeSetListener() {
             @Override
             public void onTimeSet(RadialPickerLayout view, int hourOfDay, int minute) {
+            }
+
+            @Override
+            public void onDelete() {
 
             }
         }, 1, 1, true);

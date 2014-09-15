@@ -17,10 +17,13 @@
 package trickyandroid.com.nursingtimer.widgets.timepicker;
 
 import android.animation.ObjectAnimator;
-import android.app.ActionBar.LayoutParams;
 import android.app.DialogFragment;
 import android.content.res.Resources;
 import android.os.Bundle;
+import android.text.Spannable;
+import android.text.SpannableString;
+import android.text.Spanned;
+import android.text.style.RelativeSizeSpan;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.KeyCharacterMap;
@@ -30,7 +33,6 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.View.OnKeyListener;
 import android.view.ViewGroup;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import java.text.DateFormatSymbols;
@@ -63,6 +65,8 @@ public class TimePickerDialog extends DialogFragment implements RadialPickerLayo
     public static final int AM = 0;
     public static final int PM = 1;
 
+    private RelativeSizeSpan unitsSpan;
+
     // Delay before starting the pulse animation, in ms.
     private static final int PULSE_ANIMATOR_DELAY = 300;
 
@@ -71,10 +75,9 @@ public class TimePickerDialog extends DialogFragment implements RadialPickerLayo
     private HapticFeedbackController mHapticFeedbackController;
 
     private TextView mDoneButton;
+    private TextView mDeleteButton;
     private TextView mHourView;
-    private TextView mHourSpaceView;
     private TextView mMinuteView;
-    private TextView mMinuteSpaceView;
     private TextView mAmPmTextView;
     private View mAmPmHitspace;
     private RadialPickerLayout mTimePicker;
@@ -112,11 +115,13 @@ public class TimePickerDialog extends DialogFragment implements RadialPickerLayo
     public interface OnTimeSetListener {
 
         /**
-         * @param view The view associated with this listener.
+         * @param view      The view associated with this listener.
          * @param hourOfDay The hour that was set.
-         * @param minute The minute that was set.
+         * @param minute    The minute that was set.
          */
         void onTimeSet(RadialPickerLayout view, int hourOfDay, int minute);
+
+        void onDelete();
     }
 
     public TimePickerDialog() {
@@ -124,14 +129,14 @@ public class TimePickerDialog extends DialogFragment implements RadialPickerLayo
     }
 
     public static TimePickerDialog newInstance(OnTimeSetListener callback,
-            int hourOfDay, int minute, boolean is24HourMode) {
+                                               int hourOfDay, int minute, boolean is24HourMode) {
         TimePickerDialog ret = new TimePickerDialog();
         ret.initialize(callback, hourOfDay, minute, is24HourMode);
         return ret;
     }
 
     public void initialize(OnTimeSetListener callback,
-            int hourOfDay, int minute, boolean is24HourMode) {
+                           int hourOfDay, int minute, boolean is24HourMode) {
         mCallback = callback;
 
         mInitialHourOfDay = hourOfDay;
@@ -154,9 +159,10 @@ public class TimePickerDialog extends DialogFragment implements RadialPickerLayo
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setStyle(STYLE_NO_TITLE, R.style.TimePickerDialogStyle);
+        this.unitsSpan = new RelativeSizeSpan(.4f);
         if (savedInstanceState != null && savedInstanceState.containsKey(KEY_HOUR_OF_DAY)
-                    && savedInstanceState.containsKey(KEY_MINUTE)
-                    && savedInstanceState.containsKey(KEY_IS_24_HOUR_VIEW)) {
+                && savedInstanceState.containsKey(KEY_MINUTE)
+                && savedInstanceState.containsKey(KEY_IS_24_HOUR_VIEW)) {
             mInitialHourOfDay = savedInstanceState.getInt(KEY_HOUR_OF_DAY);
             mInitialMinute = savedInstanceState.getInt(KEY_MINUTE);
             mIs24HourMode = savedInstanceState.getBoolean(KEY_IS_24_HOUR_VIEW);
@@ -166,7 +172,7 @@ public class TimePickerDialog extends DialogFragment implements RadialPickerLayo
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
-            Bundle savedInstanceState) {
+                             Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.time_picker_dialog, container, false);
         KeyboardListener keyboardListener = new KeyboardListener();
         view.findViewById(R.id.time_picker_dialog).setOnKeyListener(keyboardListener);
@@ -184,8 +190,6 @@ public class TimePickerDialog extends DialogFragment implements RadialPickerLayo
 
         mHourView = (TextView) view.findViewById(R.id.hours);
         mHourView.setOnKeyListener(keyboardListener);
-        mHourSpaceView = (TextView) view.findViewById(R.id.hour_space);
-        mMinuteSpaceView = (TextView) view.findViewById(R.id.minutes_space);
         mMinuteView = (TextView) view.findViewById(R.id.minutes);
         mMinuteView.setOnKeyListener(keyboardListener);
         mAmPmTextView = (TextView) view.findViewById(R.id.ampm_label);
@@ -200,7 +204,7 @@ public class TimePickerDialog extends DialogFragment implements RadialPickerLayo
         mTimePicker.setOnValueSelectedListener(this);
         mTimePicker.setOnKeyListener(keyboardListener);
         mTimePicker.initialize(getActivity(), mHapticFeedbackController, mInitialHourOfDay,
-            mInitialMinute, mIs24HourMode);
+                mInitialMinute, mIs24HourMode);
 
         int currentItemShowing = HOUR_INDEX;
         if (savedInstanceState != null &&
@@ -226,6 +230,7 @@ public class TimePickerDialog extends DialogFragment implements RadialPickerLayo
         });
 
         mDoneButton = (TextView) view.findViewById(R.id.done_button);
+        mDeleteButton = (TextView) view.findViewById(R.id.remove_button);
         mDoneButton.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -241,21 +246,29 @@ public class TimePickerDialog extends DialogFragment implements RadialPickerLayo
                 dismiss();
             }
         });
+        mDeleteButton.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (mInKbMode) {
+                    finishKbMode(false);
+                } else {
+                    tryVibrate();
+                }
+                if (mCallback != null) {
+                    mCallback.onDelete();
+                }
+                dismiss();
+            }
+        });
         mDoneButton.setOnKeyListener(keyboardListener);
 
         // Enable or disable the AM/PM view.
         mAmPmHitspace = view.findViewById(R.id.ampm_hitspace);
         if (mIs24HourMode) {
             mAmPmTextView.setVisibility(View.GONE);
-
-            RelativeLayout.LayoutParams paramsSeparator = new RelativeLayout.LayoutParams(
-                    LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
-            paramsSeparator.addRule(RelativeLayout.CENTER_IN_PARENT);
-            TextView separatorView = (TextView) view.findViewById(R.id.separator);
-            separatorView.setLayoutParams(paramsSeparator);
         } else {
             mAmPmTextView.setVisibility(View.VISIBLE);
-            updateAmPmDisplay(mInitialHourOfDay < 12? AM : PM);
+            updateAmPmDisplay(mInitialHourOfDay < 12 ? AM : PM);
             mAmPmHitspace.setOnClickListener(new OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -263,7 +276,7 @@ public class TimePickerDialog extends DialogFragment implements RadialPickerLayo
                     int amOrPm = mTimePicker.getIsCurrentlyAmOrPm();
                     if (amOrPm == AM) {
                         amOrPm = PM;
-                    } else if (amOrPm == PM){
+                    } else if (amOrPm == PM) {
                         amOrPm = AM;
                     }
                     updateAmPmDisplay(amOrPm);
@@ -313,7 +326,7 @@ public class TimePickerDialog extends DialogFragment implements RadialPickerLayo
             mAmPmTextView.setText(mAmText);
             Utils.tryAccessibilityAnnounce(mTimePicker, mAmText);
             mAmPmHitspace.setContentDescription(mAmText);
-        } else if (amOrPm == PM){
+        } else if (amOrPm == PM) {
             mAmPmTextView.setText(mPmText);
             Utils.tryAccessibilityAnnounce(mTimePicker, mPmText);
             mAmPmHitspace.setContentDescription(mPmText);
@@ -352,7 +365,7 @@ public class TimePickerDialog extends DialogFragment implements RadialPickerLayo
             }
 
             Utils.tryAccessibilityAnnounce(mTimePicker, announcement);
-        } else if (pickerIndex == MINUTE_INDEX){
+        } else if (pickerIndex == MINUTE_INDEX) {
             setMinute(newValue);
             mTimePicker.setContentDescription(mMinutePickerDescription + ": " + newValue);
         } else if (pickerIndex == AMPM_INDEX) {
@@ -378,11 +391,13 @@ public class TimePickerDialog extends DialogFragment implements RadialPickerLayo
         }
 
         CharSequence text = String.format(format, value);
-        mHourView.setText(text);
-        mHourSpaceView.setText(text);
         if (announce) {
             Utils.tryAccessibilityAnnounce(mTimePicker, text);
         }
+        text = text + "h";
+        Spannable spannable = new SpannableString(text);
+        spannable.setSpan(unitsSpan, text.length() - 1, text.length(), Spanned.SPAN_INCLUSIVE_EXCLUSIVE);
+        mHourView.setText(spannable);
     }
 
     private void setMinute(int value) {
@@ -391,13 +406,15 @@ public class TimePickerDialog extends DialogFragment implements RadialPickerLayo
         }
         CharSequence text = String.format(Locale.getDefault(), "%02d", value);
         Utils.tryAccessibilityAnnounce(mTimePicker, text);
-        mMinuteView.setText(text);
-        mMinuteSpaceView.setText(text);
+        text = text + "m";
+        Spannable spannable = new SpannableString(text);
+        spannable.setSpan(unitsSpan, text.length() - 1, text.length(), Spanned.SPAN_INCLUSIVE_EXCLUSIVE);
+        mMinuteView.setText(spannable);
     }
 
     // Show either Hours or Minutes.
     private void setCurrentItemShowing(int index, boolean animateCircle, boolean delayLabelAnimate,
-            boolean announce) {
+                                       boolean announce) {
         mTimePicker.setCurrentItemShowing(index, animateCircle);
 
         TextView labelToAnimate;
@@ -420,8 +437,8 @@ public class TimePickerDialog extends DialogFragment implements RadialPickerLayo
             labelToAnimate = mMinuteView;
         }
 
-        int hourColor = (index == HOUR_INDEX)? mSelectedColor : mUnselectedColor;
-        int minuteColor = (index == MINUTE_INDEX)? mSelectedColor : mUnselectedColor;
+        int hourColor = (index == HOUR_INDEX) ? mSelectedColor : mUnselectedColor;
+        int minuteColor = (index == MINUTE_INDEX) ? mSelectedColor : mUnselectedColor;
         mHourView.setTextColor(hourColor);
         mMinuteView.setTextColor(minuteColor);
 
@@ -434,6 +451,7 @@ public class TimePickerDialog extends DialogFragment implements RadialPickerLayo
 
     /**
      * For keyboard mode, processes key events.
+     *
      * @param keyCode the pressed key.
      * @return true if the key was successfully processed, false otherwise.
      */
@@ -442,7 +460,7 @@ public class TimePickerDialog extends DialogFragment implements RadialPickerLayo
             dismiss();
             return true;
         } else if (keyCode == KeyEvent.KEYCODE_TAB) {
-            if(mInKbMode) {
+            if (mInKbMode) {
                 if (isTypedTimeFullyLegal()) {
                     finishKbMode(true);
                 }
@@ -484,7 +502,7 @@ public class TimePickerDialog extends DialogFragment implements RadialPickerLayo
                 || keyCode == KeyEvent.KEYCODE_6 || keyCode == KeyEvent.KEYCODE_7
                 || keyCode == KeyEvent.KEYCODE_8 || keyCode == KeyEvent.KEYCODE_9
                 || (!mIs24HourMode &&
-                        (keyCode == getAmOrPmKeyCode(AM) || keyCode == getAmOrPmKeyCode(PM)))) {
+                (keyCode == getAmOrPmKeyCode(AM) || keyCode == getAmOrPmKeyCode(PM)))) {
             if (!mInKbMode) {
                 if (mTimePicker == null) {
                     // Something's wrong, because time picker should definitely not be null.
@@ -507,9 +525,10 @@ public class TimePickerDialog extends DialogFragment implements RadialPickerLayo
     /**
      * Try to start keyboard mode with the specified key, as long as the timepicker is not in the
      * middle of a touch-event.
+     *
      * @param keyCode The key to use as the first press. Keyboard mode will not be started if the
-     * key is not legal to start with. Or, pass in -1 to get into keyboard mode without a starting
-     * key.
+     *                key is not legal to start with. Or, pass in -1 to get into keyboard mode without a starting
+     *                key.
      */
     private void tryStartingKbMode(int keyCode) {
         if (mTimePicker.trySettingInputEnabled(false) &&
@@ -590,7 +609,8 @@ public class TimePickerDialog extends DialogFragment implements RadialPickerLayo
 
     /**
      * Get out of keyboard mode. If there is nothing in typedTimes, revert to TimePicker's time.
-     * @param changeDisplays If true, update the displays with the relevant time.
+     *
+     * @param updateDisplays If true, update the displays with the relevant time.
      */
     private void finishKbMode(boolean updateDisplays) {
         mInKbMode = false;
@@ -612,8 +632,9 @@ public class TimePickerDialog extends DialogFragment implements RadialPickerLayo
      * Update the hours, minutes, and AM/PM displays with the typed times. If the typedTimes is
      * empty, either show an empty display (filled with the placeholder text), or update from the
      * timepicker's values.
+     *
      * @param allowEmptyDisplay if true, then if the typedTimes is empty, use the placeholder text.
-     * Otherwise, revert to the timepicker's values.
+     *                          Otherwise, revert to the timepicker's values.
      */
     private void updateDisplay(boolean allowEmptyDisplay) {
         if (!allowEmptyDisplay && mTypedTimes.isEmpty()) {
@@ -622,24 +643,22 @@ public class TimePickerDialog extends DialogFragment implements RadialPickerLayo
             setHour(hour, true);
             setMinute(minute);
             if (!mIs24HourMode) {
-                updateAmPmDisplay(hour < 12? AM : PM);
+                updateAmPmDisplay(hour < 12 ? AM : PM);
             }
             setCurrentItemShowing(mTimePicker.getCurrentItemShowing(), true, true, true);
             mDoneButton.setEnabled(true);
         } else {
             Boolean[] enteredZeros = {false, false};
             int[] values = getEnteredTime(enteredZeros);
-            String hourFormat = enteredZeros[0]? "%02d" : "%2d";
-            String minuteFormat = (enteredZeros[1])? "%02d" : "%2d";
-            String hourStr = (values[0] == -1)? mDoublePlaceholderText :
-                String.format(hourFormat, values[0]).replace(' ', mPlaceholderText);
-            String minuteStr = (values[1] == -1)? mDoublePlaceholderText :
-                String.format(minuteFormat, values[1]).replace(' ', mPlaceholderText);
-            mHourView.setText(hourStr);
-            mHourSpaceView.setText(hourStr);
+            String hourFormat = enteredZeros[0] ? "%02d" : "%2d";
+            String minuteFormat = (enteredZeros[1]) ? "%02d" : "%2d";
+            String hourStr = (values[0] == -1) ? mDoublePlaceholderText :
+                    String.format(hourFormat, values[0]).replace(' ', mPlaceholderText);
+            String minuteStr = (values[1] == -1) ? mDoublePlaceholderText :
+                    String.format(minuteFormat, values[1]).replace(' ', mPlaceholderText);
+            mHourView.setText(hourStr + "h");
             mHourView.setTextColor(mUnselectedColor);
-            mMinuteView.setText(minuteStr);
-            mMinuteSpaceView.setText(minuteStr);
+            mMinuteView.setText(minuteStr + "m");
             mMinuteView.setTextColor(mUnselectedColor);
             if (!mIs24HourMode) {
                 updateAmPmDisplay(values[2]);
@@ -676,9 +695,10 @@ public class TimePickerDialog extends DialogFragment implements RadialPickerLayo
 
     /**
      * Get the currently-entered time, as integer values of the hours and minutes typed.
+     *
      * @param enteredZeros A size-2 boolean array, which the caller should initialize, and which
-     * may then be used for the caller to know whether zeros had been explicitly entered as either
-     * hours of minutes. This is helpful for deciding whether to show the dashes, or actual 0's.
+     *                     may then be used for the caller to know whether zeros had been explicitly entered as either
+     *                     hours of minutes. This is helpful for deciding whether to show the dashes, or actual 0's.
      * @return A size-3 int array. The first value will be the hours, the second value will be the
      * minutes, and the third will be either TimePickerDialog.AM or TimePickerDialog.PM.
      */
@@ -689,7 +709,7 @@ public class TimePickerDialog extends DialogFragment implements RadialPickerLayo
             int keyCode = mTypedTimes.get(mTypedTimes.size() - 1);
             if (keyCode == getAmOrPmKeyCode(AM)) {
                 amOrPm = AM;
-            } else if (keyCode == getAmOrPmKeyCode(PM)){
+            } else if (keyCode == getAmOrPmKeyCode(PM)) {
                 amOrPm = PM;
             }
             startIndex = 2;
@@ -700,15 +720,15 @@ public class TimePickerDialog extends DialogFragment implements RadialPickerLayo
             int val = getValFromKeyCode(mTypedTimes.get(mTypedTimes.size() - i));
             if (i == startIndex) {
                 minute = val;
-            } else if (i == startIndex+1) {
-                minute += 10*val;
+            } else if (i == startIndex + 1) {
+                minute += 10 * val;
                 if (enteredZeros != null && val == 0) {
                     enteredZeros[1] = true;
                 }
-            } else if (i == startIndex+2) {
+            } else if (i == startIndex + 2) {
                 hour = val;
-            } else if (i == startIndex+3) {
-                hour += 10*val;
+            } else if (i == startIndex + 3) {
+                hour += 10 * val;
                 if (enteredZeros != null && val == 0) {
                     enteredZeros[0] = true;
                 }
