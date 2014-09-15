@@ -3,7 +3,6 @@ package trickyandroid.com.nursingtimer.widgets;
 import android.animation.Animator;
 import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
-import android.app.DialogFragment;
 import android.app.FragmentManager;
 import android.content.Context;
 import android.graphics.ColorFilter;
@@ -12,12 +11,14 @@ import android.graphics.PorterDuffColorFilter;
 import android.os.Bundle;
 import android.os.Parcelable;
 import android.util.AttributeSet;
+import android.util.TypedValue;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewTreeObserver;
 import android.view.animation.DecelerateInterpolator;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
+import android.widget.TextView;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
@@ -45,6 +46,12 @@ public abstract class TimerLayout extends RelativeLayout implements View.OnClick
     ImageView timerStopBtn;
     @InjectView(R.id.alarmIcon)
     ImageView alarmBtn;
+    @InjectView(R.id.alarmText)
+    TextView alarmText;
+
+    //alarm - hours/minutes
+    int[] alarm = new int[2];
+    boolean isAlarmEnabled = false;
 
     FragmentManager fragmentManager;
 
@@ -125,13 +132,24 @@ public abstract class TimerLayout extends RelativeLayout implements View.OnClick
         TimePickerDialog tpd = TimePickerDialog.newInstance(new TimePickerDialog.OnTimeSetListener() {
             @Override
             public void onTimeSet(RadialPickerLayout view, int hourOfDay, int minute) {
+                alarm[0] = hourOfDay;
+                alarm[1] = minute;
+                if (alarm[0] != 0 || alarm[1] != 0) {
+                    isAlarmEnabled = true;
+                    enableAlarm(hourOfDay, minute);
+                } else {
+                    isAlarmEnabled = false;
+                    disableAlarm();
+                }
+
             }
 
             @Override
             public void onDelete() {
-
+                isAlarmEnabled = false;
+                disableAlarm();
             }
-        }, 1, 1, true);
+        }, alarm[0], alarm[1], true);
         tpd.show(fragmentManager, "");
     }
 
@@ -162,6 +180,8 @@ public abstract class TimerLayout extends RelativeLayout implements View.OnClick
         bundle.putParcelable("instanceState", super.onSaveInstanceState());
         bundle.putInt("timerStatus", this.timerText.getCurrentTimerStatus().ordinal());
         bundle.putLong("timerTime", this.timerText.getTimerStartTimeMs());
+        bundle.putIntArray("alarmTime", alarm);
+        bundle.putBoolean("alarmEnabled", isAlarmEnabled);
         return bundle;
     }
 
@@ -172,8 +192,13 @@ public abstract class TimerLayout extends RelativeLayout implements View.OnClick
             state = bundle.getParcelable("instanceState");
             timerText.setTimerStartTimeMs(bundle.getLong("timerTime", 0));
             TimerTextView.TimerStatus status = TimerTextView.TimerStatus.values()[bundle.getInt("timerStatus")];
+            alarm = bundle.getIntArray("alarmTime");
+            isAlarmEnabled = bundle.getBoolean("alarmEnabled");
             if (status == TimerTextView.TimerStatus.STARTED) {
                 resumeTimer();
+                if (isAlarmEnabled) {
+                    enableAlarm(alarm[0], alarm[1]);
+                }
             }
         }
         super.onRestoreInstanceState(state);
@@ -189,17 +214,58 @@ public abstract class TimerLayout extends RelativeLayout implements View.OnClick
 
     public void stopTimer() {
         this.timerText.stopTimer();
-        fadeOutViews(this.timerText, this.alarmBtn);
+        fadeOutViews(this.timerText);
+        disableAlarm();
     }
 
     public void resumeTimer() {
         this.timerText.startTimer();
-        fadeInViews(this.timerText, this.alarmBtn);
+        fadeInViews(this.timerText);
     }
 
     public void resetTimer() {
         this.timerText.resetTimer();
-        fadeInViews(this.timerText, this.alarmBtn);
+        fadeInViews(this.timerText);
+        if (isAlarmEnabled) {
+            enableAlarm(alarm[0], alarm[1]);
+        }
+    }
+
+    private void disableAlarm() {
+        if (alarmText.getVisibility() == View.GONE) {
+            //do not animate if already on the screen
+            return;
+        }
+        alarmBtn.animate().alpha(INACTIVE_ALPHA).translationY(0).start();
+        alarmText.animate().translationY(0).alpha(0).withEndAction(new Runnable() {
+            @Override
+            public void run() {
+                alarmText.setVisibility(View.GONE);
+            }
+        }).start();
+    }
+
+    private void enableAlarm(int hours, int minutes) {
+        alarmText.setText(String.format("%02d:%02d", hours, minutes));
+
+        if (alarmText.getVisibility() == View.VISIBLE) {
+            //do not animate if already on the screen
+            return;
+        }
+        alarmText.setVisibility(View.VISIBLE);
+        alarmText.setAlpha(0);
+        TypedValue outValue = new TypedValue();
+        getResources().getValue(R.dimen.alarm_button_translate_y_factor, outValue, true);
+        final float translateYFactor = outValue.getFloat();
+        alarmText.getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
+            @Override
+            public boolean onPreDraw() {
+                alarmText.getViewTreeObserver().removeOnPreDrawListener(this);
+                alarmBtn.animate().alpha(1).translationY((float) (-alarmText.getHeight() * translateYFactor)).start();
+                alarmText.animate().translationY((float) (alarmText.getHeight() * translateYFactor)).alpha(1).start();
+                return true;
+            }
+        });
     }
 
     public void showControlPanel() {

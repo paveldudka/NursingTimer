@@ -9,7 +9,7 @@
         android:id="@+id/timerDetailsSection"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_toStartOf="@+id/alarmIcon"
+        android:layout_toStartOf="@+id/alarmSection"
         android:orientation="horizontal"
         android:clickable="true"
         android:background="?android:selectableItemBackground">
@@ -25,16 +25,28 @@
 
     </LinearLayout>
 
-    <ImageView
-        android:id="@+id/alarmIcon"
+    <FrameLayout
+        android:id="@+id/alarmSection"
         android:layout_width="72dip"
         android:layout_height="match_parent"
-        android:layout_gravity="center_vertical"
-        android:layout_toStartOf="@+id/timer"
-        android:background="?android:selectableItemBackground"
-        android:clickable="true"
-        android:padding="@dimen/alarm_icon_padding"
-        android:src="@android:drawable/ic_lock_idle_alarm" />
+        android:layout_toStartOf="@+id/timer">
+        <ImageView
+            android:id="@+id/alarmIcon"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_gravity="center_vertical"
+            android:background="?android:selectableItemBackground"
+            android:clickable="true"
+            android:padding="@dimen/alarm_icon_padding"
+            android:src="@android:drawable/ic_lock_idle_alarm" />
+
+        <TextView
+            android:id="@+id/alarmText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:visibility="gone"/>
+    </FrameLayout>
 
     <trickyandroid.com.nursingtimer.widgets.TimerTextView
         android:id="@+id/timer"

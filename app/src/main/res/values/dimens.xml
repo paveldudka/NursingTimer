@@ -4,4 +4,6 @@
     <dimen name="content_horizontal_margin">72dp</dimen>
     <dimen name="activity_vertical_margin">16dp</dimen>
     <dimen name="alarm_icon_padding">24dip</dimen>
+
+    <item name="alarm_button_translate_y_factor" format="float" type="dimen">.75</item>
 </resources>
