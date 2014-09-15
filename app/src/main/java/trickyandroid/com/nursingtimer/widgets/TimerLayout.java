@@ -3,6 +3,8 @@ package trickyandroid.com.nursingtimer.widgets;
 import android.animation.Animator;
 import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
+import android.app.DialogFragment;
+import android.app.FragmentManager;
 import android.content.Context;
 import android.graphics.ColorFilter;
 import android.graphics.PorterDuff;
@@ -20,6 +22,8 @@ import android.widget.RelativeLayout;
 import butterknife.ButterKnife;
 import butterknife.InjectView;
 import trickyandroid.com.nursingtimer.R;
+import trickyandroid.com.nursingtimer.widgets.timepicker.RadialPickerLayout;
+import trickyandroid.com.nursingtimer.widgets.timepicker.TimePickerDialog;
 
 /**
  * Created by paveld on 9/9/14.
@@ -40,6 +44,8 @@ public abstract class TimerLayout extends RelativeLayout implements View.OnClick
     ImageView timerStopBtn;
     @InjectView(R.id.alarmIcon)
     ImageView alarmBtn;
+
+    FragmentManager fragmentManager;
 
     private static final float INACTIVE_ALPHA = .5f;
 
@@ -103,8 +109,26 @@ public abstract class TimerLayout extends RelativeLayout implements View.OnClick
             case R.id.timer:
                 showControlPanel();
                 break;
+            case R.id.alarmIcon:
+                showNumberPicker();
+                break;
         }
     }
+
+    public void setFragmentManager(FragmentManager fm) {
+        fragmentManager = fm;
+    }
+
+    private void showNumberPicker() {
+        TimePickerDialog tpd = TimePickerDialog.newInstance(new TimePickerDialog.OnTimeSetListener() {
+            @Override
+            public void onTimeSet(RadialPickerLayout view, int hourOfDay, int minute) {
+
+            }
+        }, 1, 1, true);
+        tpd.show(fragmentManager, "");
+    }
+
 
     private void fadeInViews(View... views) {
         AnimatorSet set = new AnimatorSet();

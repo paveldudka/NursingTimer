@@ -43,6 +43,7 @@ public class MainActivity extends Activity {
     protected void onStart() {
         super.onStart();
         for (TimerLayout timer : timers) {
+            timer.setFragmentManager(getFragmentManager());
             if (timer.getTimerStatus() == TimerTextView.TimerStatus.PAUSED) {
                 timer.resumeTimer();
             }

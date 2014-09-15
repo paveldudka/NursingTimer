@@ -26,4 +26,10 @@
     <style name="CustomActionBarTheme" parent="@android:style/ThemeOverlay.Material.ActionBar">
         <item name="android:textColorPrimary">#deffffff</item>
     </style>
+
+    <style name="TimePickerDialogStyle" parent="android:Theme.Material.Light.Dialog">
+        <item name="android:colorControlHighlight">@color/primaryFallback</item>
+        <item name="android:colorPrimary">@color/primaryColor</item>
+        <item name="android:colorPrimaryDark">@color/primaryColorDark</item>
+    </style>
 </resources>
