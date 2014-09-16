@@ -194,6 +194,7 @@ public abstract class TimerLayout extends RelativeLayout implements View.OnClick
             this.alarmModel = bundle.getParcelable("alarmModel");
 
             if (timerModel != null) {
+                this.timerModel.setAlarmModel(alarmModel);
                 timerText.setTimerStartTimeMs(timerModel.getEventStartTimestamp());
                 resumeTimer();
                 if (alarmModel.isAlarmEnabled()) {
