@@ -4,34 +4,33 @@ import android.os.Parcel;
 import android.os.Parcelable;
 
 /**
- * Created by paveld on 9/15/14.
+ * Created by paveld on 9/18/14.
  */
-public class TimerModel implements Parcelable {
-    long eventStartTimestamp;
+public class TimerModel implements Parcelable{
+    TimedEvent event;
+    AlarmModel alarm;
 
-    AlarmModel alarmModel = new AlarmModel();
+    public TimerModel(){}
 
     TimerModel(Parcel in) {
-        this.eventStartTimestamp = in.readLong();
-        this.alarmModel = in.readParcelable(AlarmModel.class.getClassLoader());
-    }
-
-    public TimerModel(long eventStartTimestamp) {
-        this.eventStartTimestamp = eventStartTimestamp;
-    }
-
-    public void setAlarmModel(AlarmModel alarm) {
-        if (alarm != null) {
-            this.alarmModel = alarm;
-        }
+        event = in.readParcelable(TimedEvent.class.getClassLoader());
+        alarm = in.readParcelable(AlarmModel.class.getClassLoader());
     }
 
     public AlarmModel getAlarmModel() {
-        return alarmModel;
+        return alarm;
     }
 
-    public long getEventStartTimestamp() {
-        return eventStartTimestamp;
+    public void setAlarmModel(AlarmModel alarm) {
+        this.alarm = alarm;
+    }
+
+    public TimedEvent getEvent() {
+        return event;
+    }
+
+    public void setEvent(TimedEvent event) {
+        this.event = event;
     }
 
     @Override
@@ -41,8 +40,8 @@ public class TimerModel implements Parcelable {
 
     @Override
     public void writeToParcel(Parcel parcel, int i) {
-        parcel.writeLong(eventStartTimestamp);
-        parcel.writeParcelable(alarmModel, 0);
+        parcel.writeParcelable(event, 0);
+        parcel.writeParcelable(alarm, 0);
     }
 
     public static final Parcelable.Creator<TimerModel> CREATOR
@@ -50,7 +49,6 @@ public class TimerModel implements Parcelable {
         public TimerModel createFromParcel(Parcel in) {
             return new TimerModel(in);
         }
-
         public TimerModel[] newArray(int size) {
             return new TimerModel[size];
         }

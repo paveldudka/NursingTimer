@@ -29,4 +29,9 @@ public class OtherTimer extends TimerLayout {
     int getIconResId() {
         return R.drawable.walk;
     }
+
+    @Override
+    public String getTimerName() {
+        return "other timer";
+    }
 }

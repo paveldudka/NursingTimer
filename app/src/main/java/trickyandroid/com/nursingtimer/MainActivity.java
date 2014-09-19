@@ -4,10 +4,15 @@ import android.app.Activity;
 import android.os.Bundle;
 import android.view.Menu;
 
+import com.colintmiller.simplenosql.NoSQL;
+import com.colintmiller.simplenosql.NoSQLEntity;
+import com.colintmiller.simplenosql.RetrievalCallback;
+
 import java.util.List;
 
 import butterknife.ButterKnife;
 import butterknife.InjectViews;
+import trickyandroid.com.nursingtimer.models.TimerModel;
 import trickyandroid.com.nursingtimer.widgets.TimerLayout;
 import trickyandroid.com.nursingtimer.widgets.TimerTextView;
 
@@ -21,6 +26,18 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         ButterKnife.inject(this);
+        if (savedInstanceState == null) {
+            for (final TimerLayout t : timers) {
+                NoSQL.with(this).using(TimerModel.class).bucketId("timers").entityId(t.getTimerName()).retrieve(new RetrievalCallback<TimerModel>() {
+                    @Override
+                    public void retrievedResults(List<NoSQLEntity<TimerModel>> noSQLEntities) {
+                        if (noSQLEntities != null && !noSQLEntities.isEmpty()) {
+                            t.setModel(noSQLEntities.get(0).getData());
+                        }
+                    }
+                });
+            }
+        }
     }
 
     @Override
@@ -37,6 +54,17 @@ public class MainActivity extends Activity {
             }
         }
         super.onStop();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+
+        for (TimerLayout t : timers) {
+            NoSQLEntity entity = new NoSQLEntity<TimerModel>("timers", t.getTimerName());
+            entity.setData(t.getModel());
+            NoSQL.with(this).using(TimerModel.class).save(entity);
+        }
     }
 
     @Override

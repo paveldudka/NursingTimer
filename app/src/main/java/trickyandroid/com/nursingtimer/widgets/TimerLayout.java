@@ -1,7 +1,5 @@
 package trickyandroid.com.nursingtimer.widgets;
 
-import android.animation.Animator;
-import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
 import android.app.FragmentManager;
 import android.content.Context;
@@ -25,6 +23,7 @@ import butterknife.InjectView;
 import trickyandroid.com.nursingtimer.R;
 import trickyandroid.com.nursingtimer.Utils;
 import trickyandroid.com.nursingtimer.models.AlarmModel;
+import trickyandroid.com.nursingtimer.models.TimedEvent;
 import trickyandroid.com.nursingtimer.models.TimerModel;
 import trickyandroid.com.nursingtimer.widgets.timepicker.RadialPickerLayout;
 import trickyandroid.com.nursingtimer.widgets.timepicker.TimePickerDialog;
@@ -51,12 +50,12 @@ public abstract class TimerLayout extends RelativeLayout implements View.OnClick
     @InjectView(R.id.alarmText)
     TextView alarmText;
 
-    AlarmModel alarmModel = new AlarmModel();
-    TimerModel timerModel;
+    TimerModel model;
 
     FragmentManager fragmentManager;
 
     private static final float INACTIVE_ALPHA = .5f;
+    private static final float ACTIVE_ALPHA = 1;
 
     boolean isControlPanelVisible = false;
 
@@ -91,7 +90,40 @@ public abstract class TimerLayout extends RelativeLayout implements View.OnClick
 
         timerText.setAlpha(INACTIVE_ALPHA);
         alarmBtn.setAlpha(INACTIVE_ALPHA);
+
+        this.model = new TimerModel();
     }
+
+    public void setModel(final TimerModel model) {
+        this.model = model;
+
+        if (this.model == null) {
+            this.model = new TimerModel();
+            stopTimer();
+            return;
+        }
+
+        if (model.getEvent() != null) {
+            postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    timerText.startTimer(model.getEvent().getEventStartTimestamp());
+                    fadeInView(timerText);
+                    if (model.getAlarmModel() != null && model.getAlarmModel().isAlarmEnabled()) {
+                        enableAlarmView(model.getAlarmModel().getAlarm()[0], model.getAlarmModel().getAlarm()[1]);
+                    }
+                }
+            }, 500);
+
+        } else {
+            stopTimer();
+        }
+    }
+
+    public TimerModel getModel() {
+        return this.model;
+    }
+
 
     private void applyAccents() {
         ColorFilter cf = new PorterDuffColorFilter(getResources().getColor(R.color.accentColor), PorterDuff.Mode.SRC_ATOP);
@@ -130,58 +162,51 @@ public abstract class TimerLayout extends RelativeLayout implements View.OnClick
     }
 
     private void showNumberPicker() {
+        int h = model.getAlarmModel() == null ? 0 : model.getAlarmModel().getAlarm()[0];
+        int m = model.getAlarmModel() == null ? 0 : model.getAlarmModel().getAlarm()[1];
         TimePickerDialog tpd = TimePickerDialog.newInstance(new TimePickerDialog.OnTimeSetListener() {
             @Override
             public void onTimeSet(RadialPickerLayout view, int hourOfDay, int minute) {
                 int[] alarm = {hourOfDay, minute};
-                alarmModel = new AlarmModel();
-                alarmModel.setAlarm(alarm);
                 if (hourOfDay != 0 || minute != 0) {
-                    alarmModel.setAlarmEnabled(true);
-                    enableAlarm(hourOfDay, minute);
+                    model.setAlarmModel(new AlarmModel());
+                    model.getAlarmModel().setAlarm(alarm);
+                    model.getAlarmModel().setAlarmEnabled(true);
+                    enableAlarmView(hourOfDay, minute);
                 } else {
-                    alarmModel.setAlarmEnabled(false);
-                    disableAlarm();
+                    onDelete();
                 }
-                timerModel.setAlarmModel(alarmModel);
             }
 
             @Override
             public void onDelete() {
-                alarmModel.setAlarmEnabled(false);
-                disableAlarm();
+                if (model.getAlarmModel() != null) {
+                    model.getAlarmModel().setAlarmEnabled(false);
+                    disableAlarmView();
+                }
             }
-        }, alarmModel.getAlarm()[0], alarmModel.getAlarm()[1], true);
+        }, h, m, true);
         tpd.show(fragmentManager, "");
     }
 
 
-    private void fadeInViews(View... views) {
-        AnimatorSet set = new AnimatorSet();
-        Animator[] animators = new Animator[views.length];
-        for (int i = 0; i < views.length; i++) {
-            animators[i] = ObjectAnimator.ofFloat(views[i], View.ALPHA, 1);
+    private void fadeInView(View view) {
+        if (view.getAlpha() != ACTIVE_ALPHA) {
+            ObjectAnimator.ofFloat(view, View.ALPHA, ACTIVE_ALPHA).start();
         }
-        set.playTogether(animators);
-        set.start();
     }
 
-    private void fadeOutViews(View... views) {
-        AnimatorSet set = new AnimatorSet();
-        Animator[] animators = new Animator[views.length];
-        for (int i = 0; i < views.length; i++) {
-            animators[i] = ObjectAnimator.ofFloat(views[i], View.ALPHA, INACTIVE_ALPHA);
+    private void fadeOutView(View view) {
+        if (view.getAlpha() != INACTIVE_ALPHA) {
+            ObjectAnimator.ofFloat(view, View.ALPHA, INACTIVE_ALPHA).start();
         }
-        set.playTogether(animators);
-        set.start();
     }
 
     @Override
     public Parcelable onSaveInstanceState() {
         Bundle bundle = new Bundle();
         bundle.putParcelable("instanceState", super.onSaveInstanceState());
-        bundle.putParcelable("alarmModel", this.alarmModel);
-        bundle.putParcelable("timerModel", this.timerModel);
+        bundle.putParcelable("model", this.model);
         return bundle;
     }
 
@@ -190,15 +215,13 @@ public abstract class TimerLayout extends RelativeLayout implements View.OnClick
         if (state instanceof Bundle) {
             Bundle bundle = (Bundle) state;
             state = bundle.getParcelable("instanceState");
-            this.timerModel = bundle.getParcelable("timerModel");
-            this.alarmModel = bundle.getParcelable("alarmModel");
+            this.model = bundle.getParcelable("model");
 
-            if (timerModel != null) {
-                this.timerModel.setAlarmModel(alarmModel);
-                timerText.setTimerStartTimeMs(timerModel.getEventStartTimestamp());
+            if (model != null && model.getEvent() != null) {
+                timerText.setTimerStartTimeMs(model.getEvent().getEventStartTimestamp());
                 resumeTimer();
-                if (alarmModel.isAlarmEnabled()) {
-                    enableAlarm(alarmModel.getAlarm()[0], alarmModel.getAlarm()[1]);
+                if (model.getAlarmModel() != null && model.getAlarmModel().isAlarmEnabled()) {
+                    enableAlarmView(model.getAlarmModel().getAlarm()[0], model.getAlarmModel().getAlarm()[1]);
                 }
             }
         }
@@ -215,30 +238,27 @@ public abstract class TimerLayout extends RelativeLayout implements View.OnClick
 
     public void stopTimer() {
         this.timerText.stopTimer();
-        fadeOutViews(this.timerText);
-        disableAlarm();
-        this.timerModel = null;
+        fadeOutView(this.timerText);
+        disableAlarmView();
+        this.model.setEvent(null);
     }
 
     public void resumeTimer() {
         this.timerText.startTimer();
-        fadeInViews(this.timerText);
+        fadeInView(this.timerText);
     }
 
     public void resetTimer() {
         this.timerText.resetTimer();
-        fadeInViews(this.timerText);
+        fadeInView(this.timerText);
 
-        timerModel = new TimerModel(System.currentTimeMillis());
-        //copy alarm from previous model
-        timerModel.setAlarmModel(alarmModel);
-
-        if (alarmModel != null && alarmModel.isAlarmEnabled()) {
-            enableAlarm(alarmModel.getAlarm()[0], alarmModel.getAlarm()[1]);
+        model.setEvent(new TimedEvent(System.currentTimeMillis()));
+        if (model.getAlarmModel() != null && model.getAlarmModel().isAlarmEnabled()) {
+            enableAlarmView(model.getAlarmModel().getAlarm()[0], model.getAlarmModel().getAlarm()[1]);
         }
     }
 
-    private void disableAlarm() {
+    private void disableAlarmView() {
         if (alarmText.getVisibility() == View.GONE) {
             //do not animate if already on the screen
             return;
@@ -252,13 +272,14 @@ public abstract class TimerLayout extends RelativeLayout implements View.OnClick
         }).start();
     }
 
-    private void enableAlarm(int hours, int minutes) {
+    private void enableAlarmView(int hours, int minutes) {
         alarmText.setText(String.format("%02d:%02d", hours, minutes));
 
         if (alarmText.getVisibility() == View.VISIBLE) {
             //do not animate if already on the screen
             return;
         }
+
         alarmText.setVisibility(View.VISIBLE);
         alarmText.setAlpha(0);
         TypedValue outValue = new TypedValue();
@@ -279,7 +300,6 @@ public abstract class TimerLayout extends RelativeLayout implements View.OnClick
         if (isControlPanelVisible) {
             return;
         }
-
 
         if (timerText.getCurrentTimerStatus() == TimerTextView.TimerStatus.STOPPED) {
             timerStartBtn.setImageResource(R.drawable.ic_action_play);
@@ -338,4 +358,6 @@ public abstract class TimerLayout extends RelativeLayout implements View.OnClick
             }
         }
     };
+
+    public abstract String getTimerName();
 }

@@ -29,4 +29,9 @@ public class SleepTimer extends TimerLayout {
     int getIconResId() {
         return R.drawable.sleep;
     }
+
+    @Override
+    public String getTimerName() {
+        return "sleep timer";
+    }
 }

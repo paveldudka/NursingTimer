@@ -78,6 +78,16 @@ public class TimerTextView extends TextView {
         setTextColor(Color.argb((int) (initialTextAlpha * alpha), Color.red(color), Color.green(color), Color.blue(color)));
     }
 
+    @Override
+    public float getAlpha() {
+        if (initialTextAlpha == 0) {
+            return 0;
+        }
+
+        float currentAlpha = Color.alpha(getCurrentTextColor());
+        return currentAlpha / initialTextAlpha;
+    }
+
     public void startTimer(long timeMs) {
         if (timeMs == -1) {
             timeMs = System.currentTimeMillis();

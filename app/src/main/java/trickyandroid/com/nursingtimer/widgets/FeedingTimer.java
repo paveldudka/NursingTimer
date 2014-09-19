@@ -29,4 +29,9 @@ public class FeedingTimer extends TimerLayout {
     int getIconResId() {
         return R.drawable.food;
     }
+
+    @Override
+    public String getTimerName() {
+        return "feeding timer";
+    }
 }

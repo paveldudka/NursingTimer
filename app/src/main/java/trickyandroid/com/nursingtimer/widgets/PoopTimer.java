@@ -29,4 +29,9 @@ public class PoopTimer extends TimerLayout {
     int getIconResId() {
         return R.drawable.poop;
     }
+
+    @Override
+    public String getTimerName() {
+        return "poop timer";
+    }
 }
