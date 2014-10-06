@@ -7,23 +7,34 @@ import android.view.Menu;
 import com.colintmiller.simplenosql.NoSQL;
 import com.colintmiller.simplenosql.NoSQLEntity;
 import com.colintmiller.simplenosql.RetrievalCallback;
+import com.squareup.otto.Bus;
+import com.squareup.otto.Subscribe;
 
 import java.util.List;
 
+import javax.inject.Inject;
+
 import butterknife.ButterKnife;
 import butterknife.InjectViews;
+import hugo.weaving.DebugLog;
+import trickyandroid.com.nursingtimer.bus.TimerModelUpdatedEvent;
 import trickyandroid.com.nursingtimer.models.TimerModel;
 import trickyandroid.com.nursingtimer.widgets.TimerLayout;
 import trickyandroid.com.nursingtimer.widgets.TimerTextView;
 
 
 public class MainActivity extends Activity {
+
+    @Inject
+    Bus bus;
+
     @InjectViews({R.id.feedingTimer, R.id.poopTimer, R.id.sleepTimer, R.id.otherTimer})
     List<TimerLayout> timers;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        TimerApplication.get(this).inject(this);
         setContentView(R.layout.activity_main);
         ButterKnife.inject(this);
         if (savedInstanceState == null) {
@@ -48,6 +59,7 @@ public class MainActivity extends Activity {
 
     @Override
     protected void onStop() {
+        bus.unregister(this);
         for (TimerLayout timer : timers) {
             if (timer.getTimerStatus() == TimerTextView.TimerStatus.STARTED) {
                 timer.pauseTimer();
@@ -56,20 +68,19 @@ public class MainActivity extends Activity {
         super.onStop();
     }
 
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-
-        for (TimerLayout t : timers) {
-            NoSQLEntity entity = new NoSQLEntity<TimerModel>("timers", t.getTimerName());
-            entity.setData(t.getModel());
-            NoSQL.with(this).using(TimerModel.class).save(entity);
-        }
+    @Subscribe
+    @DebugLog
+    public void onTimerModelUpdatedReceived(TimerModelUpdatedEvent event)
+    {
+        NoSQLEntity entity = new NoSQLEntity<TimerModel>("timers", String.valueOf(event.timerName));
+        entity.setData(event.model);
+        NoSQL.with(this).using(TimerModel.class).save(entity);
     }
 
     @Override
     protected void onStart() {
         super.onStart();
+        bus.register(this);
         for (TimerLayout timer : timers) {
             timer.setFragmentManager(getFragmentManager());
             if (timer.getTimerStatus() == TimerTextView.TimerStatus.PAUSED) {
