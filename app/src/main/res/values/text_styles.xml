@@ -3,9 +3,6 @@
     <style name="HeadlineTextStyle">
         <item name="android:textSize">24sp</item>
     </style>
-    <style name="TitleTextStyle">
-        <item name="android:textSize">20sp</item>
-    </style>
     <style name="Display1TextStyle" parent="android:TextAppearance.Small">
         <item name="android:textSize">34sp</item>
     </style>

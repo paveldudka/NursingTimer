@@ -8,17 +8,6 @@
     android:clickable="true"
     tools:context=".MainActivity">
 
-    <TextView
-        style="@style/TitleTextStyle"
-        android:layout_width="match_parent"
-        android:layout_height="?android:actionBarSize"
-        android:gravity="center_vertical"
-        android:background="@color/primaryColor"
-        android:paddingStart="@dimen/content_horizontal_margin"
-        android:paddingEnd="@dimen/content_horizontal_margin"
-        android:text="My timers"
-        android:elevation="2dp"
-        android:textColor="?android:textColorPrimaryInverse" />
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"

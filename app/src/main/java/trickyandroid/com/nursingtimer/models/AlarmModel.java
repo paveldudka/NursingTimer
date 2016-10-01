@@ -3,9 +3,6 @@ package trickyandroid.com.nursingtimer.models;
 import android.os.Parcel;
 import android.os.Parcelable;
 
-/**
- * Created by paveld on 9/15/14.
- */
 public class AlarmModel implements Parcelable {
     boolean alarmEnabled;
     int[] alarm = new int[2];
