@@ -22,8 +22,8 @@ import com.squareup.otto.Bus;
 
 import javax.inject.Inject;
 
+import butterknife.BindView;
 import butterknife.ButterKnife;
-import butterknife.InjectView;
 import trickyandroid.com.nursingtimer.R;
 import trickyandroid.com.nursingtimer.TimerApplication;
 import trickyandroid.com.nursingtimer.Utils;
@@ -39,21 +39,21 @@ import trickyandroid.com.nursingtimer.widgets.timepicker.TimePickerDialog;
  */
 public abstract class TimerLayout extends RelativeLayout implements View.OnClickListener {
 
-    @InjectView(R.id.timerIcon)
+    @BindView(R.id.timerIcon)
     ImageView timerIcon;
-    @InjectView(R.id.timer)
+    @BindView(R.id.timer)
     TimerTextView timerText;
-    @InjectView(R.id.timerControlPanel)
+    @BindView(R.id.timerControlPanel)
     View controlPanel;
-    @InjectView(R.id.timerDetailsSection)
+    @BindView(R.id.timerDetailsSection)
     View timerDetailsSection;
-    @InjectView(R.id.timerStart)
+    @BindView(R.id.timerStart)
     ImageView timerStartBtn;
-    @InjectView(R.id.timerStop)
+    @BindView(R.id.timerStop)
     ImageView timerStopBtn;
-    @InjectView(R.id.alarmIcon)
+    @BindView(R.id.alarmIcon)
     ImageView alarmBtn;
-    @InjectView(R.id.alarmText)
+    @BindView(R.id.alarmText)
     TextView alarmText;
     @Inject
     Bus bus;
@@ -86,7 +86,7 @@ public abstract class TimerLayout extends RelativeLayout implements View.OnClick
 
     void init() {
         inflate(getContext(), R.layout.timer_layout, this);
-        ButterKnife.inject(this);
+        ButterKnife.bind(this);
         TimerApplication.get(getContext()).inject(this);
         timerIcon.setImageResource(getIconResId());
         timerText.setOnClickListener(this);
@@ -170,7 +170,7 @@ public abstract class TimerLayout extends RelativeLayout implements View.OnClick
         TimePickerDialog tpd = TimePickerDialog.newInstance(new TimePickerDialog.OnTimeSetListener() {
             @Override
             public void onTimeSet(RadialPickerLayout view, int hourOfDay, int minute) {
-                int[] alarm = {hourOfDay, minute};
+                int[] alarm = { hourOfDay, minute };
                 if (hourOfDay != 0 || minute != 0) {
                     model.setAlarmModel(new AlarmModel());
                     model.getAlarmModel().setAlarm(alarm);
@@ -218,7 +218,7 @@ public abstract class TimerLayout extends RelativeLayout implements View.OnClick
     @Override
     public void onRestoreInstanceState(Parcelable state) {
         if (state instanceof Bundle) {
-            Bundle bundle = (Bundle) state;
+            Bundle bundle = (Bundle)state;
             state = bundle.getParcelable("instanceState");
             this.model = bundle.getParcelable("model");
 

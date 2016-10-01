@@ -14,9 +14,8 @@ import java.util.List;
 
 import javax.inject.Inject;
 
+import butterknife.BindViews;
 import butterknife.ButterKnife;
-import butterknife.InjectViews;
-import hugo.weaving.DebugLog;
 import trickyandroid.com.nursingtimer.bus.TimerModelUpdatedEvent;
 import trickyandroid.com.nursingtimer.models.TimerModel;
 import trickyandroid.com.nursingtimer.widgets.TimerLayout;
@@ -28,7 +27,7 @@ public class MainActivity extends Activity {
     @Inject
     Bus bus;
 
-    @InjectViews({R.id.feedingTimer, R.id.poopTimer, R.id.sleepTimer, R.id.otherTimer})
+    @BindViews({ R.id.feedingTimer, R.id.poopTimer, R.id.sleepTimer, R.id.otherTimer })
     List<TimerLayout> timers;
 
     @Override
@@ -36,7 +35,7 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         TimerApplication.get(this).inject(this);
         setContentView(R.layout.activity_main);
-        ButterKnife.inject(this);
+        ButterKnife.bind(this);
         if (savedInstanceState == null) {
             for (final TimerLayout t : timers) {
                 NoSQL.with(this).using(TimerModel.class).bucketId("timers").entityId(t.getTimerName()).retrieve(new RetrievalCallback<TimerModel>() {
@@ -69,9 +68,7 @@ public class MainActivity extends Activity {
     }
 
     @Subscribe
-    @DebugLog
-    public void onTimerModelUpdatedReceived(TimerModelUpdatedEvent event)
-    {
+    public void onTimerModelUpdatedReceived(TimerModelUpdatedEvent event) {
         NoSQLEntity entity = new NoSQLEntity<TimerModel>("timers", String.valueOf(event.timerName));
         entity.setData(event.model);
         NoSQL.with(this).using(TimerModel.class).save(entity);
