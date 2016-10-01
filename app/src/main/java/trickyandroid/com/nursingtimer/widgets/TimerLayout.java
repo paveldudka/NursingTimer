@@ -2,6 +2,7 @@ package trickyandroid.com.nursingtimer.widgets;
 
 import android.animation.ObjectAnimator;
 import android.app.FragmentManager;
+import android.app.TimePickerDialog;
 import android.content.Context;
 import android.graphics.ColorFilter;
 import android.graphics.PorterDuff;
@@ -31,8 +32,6 @@ import trickyandroid.com.nursingtimer.bus.TimerModelUpdatedEvent;
 import trickyandroid.com.nursingtimer.models.AlarmModel;
 import trickyandroid.com.nursingtimer.models.TimedEvent;
 import trickyandroid.com.nursingtimer.models.TimerModel;
-import trickyandroid.com.nursingtimer.widgets.timepicker.RadialPickerLayout;
-import trickyandroid.com.nursingtimer.widgets.timepicker.TimePickerDialog;
 
 /**
  * Created by paveld on 9/9/14.
@@ -167,31 +166,19 @@ public abstract class TimerLayout extends RelativeLayout implements View.OnClick
     private void showNumberPicker() {
         int h = model.getAlarmModel() == null ? 0 : model.getAlarmModel().getAlarm()[0];
         int m = model.getAlarmModel() == null ? 0 : model.getAlarmModel().getAlarm()[1];
-        TimePickerDialog tpd = TimePickerDialog.newInstance(new TimePickerDialog.OnTimeSetListener() {
-            @Override
-            public void onTimeSet(RadialPickerLayout view, int hourOfDay, int minute) {
-                int[] alarm = { hourOfDay, minute };
-                if (hourOfDay != 0 || minute != 0) {
-                    model.setAlarmModel(new AlarmModel());
-                    model.getAlarmModel().setAlarm(alarm);
-                    model.getAlarmModel().setAlarmEnabled(true);
-                    enableAlarmView(hourOfDay, minute, true);
-                    bus.post(new TimerModelUpdatedEvent(getTimerName(), model));
-                } else {
-                    onDelete();
-                }
-            }
-
-            @Override
-            public void onDelete() {
-                if (model.getAlarmModel() != null) {
-                    model.getAlarmModel().setAlarmEnabled(false);
-                    disableAlarmView();
-                    bus.post(new TimerModelUpdatedEvent(getTimerName(), model));
-                }
+        TimePickerDialog tpd = new TimePickerDialog(getContext(), (view, hourOfDay, minute) -> {
+            int[] alarm = { hourOfDay, minute };
+            if (hourOfDay != 0 || minute != 0) {
+                model.setAlarmModel(new AlarmModel());
+                model.getAlarmModel().setAlarm(alarm);
+                model.getAlarmModel().setAlarmEnabled(true);
+                enableAlarmView(hourOfDay, minute, true);
+                bus.post(new TimerModelUpdatedEvent(getTimerName(), model));
+            } else {
+                //                    onDelete();
             }
         }, h, m, true);
-        tpd.show(fragmentManager, "");
+        tpd.show();
     }
 
 

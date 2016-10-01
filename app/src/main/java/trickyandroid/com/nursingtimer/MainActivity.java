@@ -35,6 +35,7 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         TimerApplication.get(this).inject(this);
         setContentView(R.layout.activity_main);
+
         ButterKnife.bind(this);
         if (savedInstanceState == null) {
             for (final TimerLayout t : timers) {

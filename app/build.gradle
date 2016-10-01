@@ -55,6 +55,11 @@ android {
         exclude 'META-INF/INDEX.LIST'
     }
 
+    compileOptions {
+        sourceCompatibility rootProject.sourceCompatibility
+        targetCompatibility rootProject.targetCompatibility
+    }
+
     retrolambda {
         jdk System.getenv("JAVA8_HOME")
         oldJdk System.getenv("JAVA7_HOME")
@@ -67,6 +72,12 @@ android {
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
+    compile rootProject.libraries.support_v4
+    compile rootProject.libraries.app_compat_v7
+    compile rootProject.libraries.support_annotations
+    compile rootProject.libraries.support_design
+
+
     compile 'com.jakewharton:butterknife:8.4.0'
     apt 'com.jakewharton:butterknife-compiler:8.4.0'
     compile 'com.colintmiller:simplenosql:0.5.1'
