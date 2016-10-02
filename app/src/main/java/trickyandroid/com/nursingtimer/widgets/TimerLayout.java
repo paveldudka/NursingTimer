@@ -86,7 +86,7 @@ public abstract class TimerLayout extends RelativeLayout implements View.OnClick
     void init() {
         inflate(getContext(), R.layout.timer_layout, this);
         ButterKnife.bind(this);
-        TimerApplication.get(getContext()).inject(this);
+        TimerApplication.get().getGraph().inject(this);
         timerIcon.setImageResource(getIconResId());
         timerText.setOnClickListener(this);
         timerText.setTimerStartTimeMs(-1);

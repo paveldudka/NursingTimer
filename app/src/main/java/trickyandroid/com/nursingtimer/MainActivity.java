@@ -33,7 +33,7 @@ public class MainActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        TimerApplication.get(this).inject(this);
+        TimerApplication.get().getGraph().inject(this);
         setContentView(R.layout.activity_main);
 
         ButterKnife.bind(this);
