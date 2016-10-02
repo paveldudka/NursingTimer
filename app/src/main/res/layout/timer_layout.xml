@@ -1,93 +1,96 @@
 <?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android">
 
-<merge xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical">
-
-    <LinearLayout
-        android:id="@+id/timerDetailsSection"
+    <merge
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_toStartOf="@+id/alarmSection"
-        android:orientation="horizontal"
-        android:clickable="true"
-        android:background="?android:selectableItemBackground">
+        android:orientation="vertical">
 
-        <ImageView
-            android:id="@+id/timerIcon"
-            android:layout_width="48dip"
-            android:layout_height="match_parent"
-            android:layout_alignParentStart="true"
-            android:layout_gravity="center_vertical"
-            android:layout_marginStart="@dimen/activity_horizontal_margin"
-            android:src="@drawable/sleep" />
-
-    </LinearLayout>
-
-    <FrameLayout
-        android:id="@+id/alarmSection"
-        android:layout_width="72dip"
-        android:layout_height="match_parent"
-        android:layout_toStartOf="@+id/timer">
-        <ImageView
-            android:id="@+id/alarmIcon"
+        <LinearLayout
+            android:id="@+id/timerDetailsSection"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_gravity="center_vertical"
+            android:layout_toStartOf="@+id/alarmSection"
             android:background="?android:selectableItemBackground"
             android:clickable="true"
-            android:padding="@dimen/alarm_icon_padding"
-            android:src="@android:drawable/ic_lock_idle_alarm" />
+            android:orientation="horizontal">
 
-        <TextView
-            android:id="@+id/alarmText"
+            <ImageView
+                android:id="@+id/timerIcon"
+                android:layout_width="48dip"
+                android:layout_height="match_parent"
+                android:layout_alignParentStart="true"
+                android:layout_gravity="center_vertical"
+                android:layout_marginStart="@dimen/activity_horizontal_margin"
+                android:src="@drawable/sleep"/>
+
+        </LinearLayout>
+
+        <FrameLayout
+            android:id="@+id/alarmSection"
+            android:layout_width="72dip"
+            android:layout_height="match_parent"
+            android:layout_toStartOf="@+id/timer">
+
+            <ImageView
+                android:id="@+id/alarmBtn"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_gravity="center_vertical"
+                android:background="?android:selectableItemBackground"
+                android:clickable="true"
+                android:padding="@dimen/alarm_icon_padding"
+                android:src="@android:drawable/ic_lock_idle_alarm"/>
+
+            <TextView
+                android:id="@+id/alarmText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:visibility="gone"/>
+        </FrameLayout>
+
+        <trickyandroid.com.nursingtimer.widgets.TimerTextView
+            android:id="@+id/timerText"
+            style="@style/Display1TextStyle"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:visibility="gone"/>
-    </FrameLayout>
-
-    <trickyandroid.com.nursingtimer.widgets.TimerTextView
-        android:id="@+id/timer"
-        style="@style/Display1TextStyle"
-        android:layout_width="wrap_content"
-        android:layout_height="match_parent"
-        android:layout_alignParentEnd="true"
-        android:background="?android:selectableItemBackground"
-        android:clickable="true"
-        android:fontFamily="sans-serif-light"
-        android:gravity="center_vertical"
-        android:paddingEnd="@dimen/activity_horizontal_margin"
-        android:paddingStart="@dimen/activity_horizontal_margin" />
-
-    <LinearLayout
-        android:id="@+id/timerControlPanel"
-        style="?android:buttonBarStyle"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_alignStart="@+id/timer"
-        android:background="@color/accentColor"
-        android:elevation="4dip"
-        android:focusable="true"
-        android:focusableInTouchMode="true"
-        android:orientation="horizontal"
-        android:visibility="gone">
-
-        <ImageButton
-            android:id="@+id/timerStop"
-            style="?android:buttonBarButtonStyle"
-            android:layout_width="0dip"
             android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:src="@drawable/ic_action_stop" />
+            android:layout_alignParentEnd="true"
+            android:background="?android:selectableItemBackground"
+            android:clickable="true"
+            android:fontFamily="sans-serif-light"
+            android:gravity="center_vertical"
+            android:paddingEnd="@dimen/activity_horizontal_margin"
+            android:paddingStart="@dimen/activity_horizontal_margin"/>
 
-        <ImageButton
-            android:id="@+id/timerStart"
-            style="?android:buttonBarButtonStyle"
-            android:layout_width="0dip"
+        <LinearLayout
+            android:id="@+id/controlPanel"
+            style="?android:buttonBarStyle"
+            android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:src="@drawable/ic_action_replay" />
-    </LinearLayout>
-</merge>
+            android:layout_alignStart="@+id/timer"
+            android:background="@color/accentColor"
+            android:elevation="4dip"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:orientation="horizontal"
+            android:visibility="gone">
+
+            <ImageButton
+                android:id="@+id/timerStop"
+                style="?android:buttonBarButtonStyle"
+                android:layout_width="0dip"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:src="@drawable/ic_action_stop"/>
+
+            <ImageButton
+                android:id="@+id/timerStart"
+                style="?android:buttonBarButtonStyle"
+                android:layout_width="0dip"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:src="@drawable/ic_action_replay"/>
+        </LinearLayout>
+    </merge>
+</layout>

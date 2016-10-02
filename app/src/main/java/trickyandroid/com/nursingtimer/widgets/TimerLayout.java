@@ -4,6 +4,7 @@ import android.animation.ObjectAnimator;
 import android.app.FragmentManager;
 import android.app.TimePickerDialog;
 import android.content.Context;
+import android.databinding.DataBindingUtil;
 import android.graphics.ColorFilter;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffColorFilter;
@@ -11,55 +12,36 @@ import android.os.Bundle;
 import android.os.Parcelable;
 import android.util.AttributeSet;
 import android.util.TypedValue;
+import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewTreeObserver;
 import android.view.animation.DecelerateInterpolator;
-import android.widget.ImageView;
 import android.widget.RelativeLayout;
-import android.widget.TextView;
 
 import com.squareup.otto.Bus;
 
 import javax.inject.Inject;
 
-import butterknife.BindView;
-import butterknife.ButterKnife;
 import trickyandroid.com.nursingtimer.R;
 import trickyandroid.com.nursingtimer.TimerApplication;
 import trickyandroid.com.nursingtimer.Utils;
 import trickyandroid.com.nursingtimer.bus.TimerModelUpdatedEvent;
+import trickyandroid.com.nursingtimer.databinding.TimerLayoutBinding;
 import trickyandroid.com.nursingtimer.models.AlarmModel;
 import trickyandroid.com.nursingtimer.models.TimedEvent;
 import trickyandroid.com.nursingtimer.models.TimerModel;
 
-/**
- * Created by paveld on 9/9/14.
- */
 public abstract class TimerLayout extends RelativeLayout implements View.OnClickListener {
 
-    @BindView(R.id.timerIcon)
-    ImageView timerIcon;
-    @BindView(R.id.timer)
-    TimerTextView timerText;
-    @BindView(R.id.timerControlPanel)
-    View controlPanel;
-    @BindView(R.id.timerDetailsSection)
-    View timerDetailsSection;
-    @BindView(R.id.timerStart)
-    ImageView timerStartBtn;
-    @BindView(R.id.timerStop)
-    ImageView timerStopBtn;
-    @BindView(R.id.alarmIcon)
-    ImageView alarmBtn;
-    @BindView(R.id.alarmText)
-    TextView alarmText;
     @Inject
     Bus bus;
 
     TimerModel model;
 
     FragmentManager fragmentManager;
+
+    TimerLayoutBinding binding;
 
     private static final float INACTIVE_ALPHA = .5f;
     private static final float ACTIVE_ALPHA = 1;
@@ -84,20 +66,19 @@ public abstract class TimerLayout extends RelativeLayout implements View.OnClick
     }
 
     void init() {
-        inflate(getContext(), R.layout.timer_layout, this);
-        ButterKnife.bind(this);
+        binding = DataBindingUtil.inflate(LayoutInflater.from(getContext()), R.layout.timer_layout, this, true);
         TimerApplication.get().getGraph().inject(this);
-        timerIcon.setImageResource(getIconResId());
-        timerText.setOnClickListener(this);
-        timerText.setTimerStartTimeMs(-1);
-        timerStopBtn.setOnClickListener(this);
-        timerStartBtn.setOnClickListener(this);
-        timerDetailsSection.setOnClickListener(this);
-        alarmBtn.setOnClickListener(this);
+        binding.timerIcon.setImageResource(getIconResId());
+        binding.timerText.setOnClickListener(this);
+        binding.timerText.setTimerStartTimeMs(-1);
+        binding.timerStop.setOnClickListener(this);
+        binding.timerStart.setOnClickListener(this);
+        binding.timerDetailsSection.setOnClickListener(this);
+        binding.alarmBtn.setOnClickListener(this);
         applyAccents();
 
-        timerText.setAlpha(INACTIVE_ALPHA);
-        alarmBtn.setAlpha(INACTIVE_ALPHA);
+        binding.timerText.setAlpha(INACTIVE_ALPHA);
+        binding.alarmBtn.setAlpha(INACTIVE_ALPHA);
 
         this.model = new TimerModel();
     }
@@ -112,8 +93,8 @@ public abstract class TimerLayout extends RelativeLayout implements View.OnClick
         }
 
         if (model.getEvent() != null) {
-            timerText.startTimer(model.getEvent().getEventStartTimestamp());
-            timerText.setAlpha(ACTIVE_ALPHA);
+            binding.timerText.startTimer(model.getEvent().getEventStartTimestamp());
+            binding.timerText.setAlpha(ACTIVE_ALPHA);
             if (model.getAlarmModel() != null && model.getAlarmModel().isAlarmEnabled()) {
                 enableAlarmView(model.getAlarmModel().getAlarm()[0], model.getAlarmModel().getAlarm()[1], false);
             }
@@ -129,7 +110,7 @@ public abstract class TimerLayout extends RelativeLayout implements View.OnClick
 
     private void applyAccents() {
         ColorFilter cf = new PorterDuffColorFilter(getResources().getColor(R.color.accentColor), PorterDuff.Mode.SRC_ATOP);
-        timerIcon.setColorFilter(cf);
+        binding.timerIcon.setColorFilter(cf);
     }
 
     abstract int getIconResId();
@@ -148,12 +129,12 @@ public abstract class TimerLayout extends RelativeLayout implements View.OnClick
             case R.id.timerStart:
                 resetTimer();
                 hideControlPanel();
-                Utils.getPulseAnimator(timerText, .95f, 1.05f).start();
+                Utils.getPulseAnimator(binding.timerText, .95f, 1.05f).start();
                 break;
             case R.id.timer:
                 showControlPanel();
                 break;
-            case R.id.alarmIcon:
+            case R.id.alarmBtn:
                 showNumberPicker();
                 break;
         }
@@ -210,7 +191,7 @@ public abstract class TimerLayout extends RelativeLayout implements View.OnClick
             this.model = bundle.getParcelable("model");
 
             if (model != null && model.getEvent() != null) {
-                timerText.setTimerStartTimeMs(model.getEvent().getEventStartTimestamp());
+                binding.timerText.setTimerStartTimeMs(model.getEvent().getEventStartTimestamp());
                 resumeTimer();
                 if (model.getAlarmModel() != null && model.getAlarmModel().isAlarmEnabled()) {
                     enableAlarmView(model.getAlarmModel().getAlarm()[0], model.getAlarmModel().getAlarm()[1], false);
@@ -221,29 +202,29 @@ public abstract class TimerLayout extends RelativeLayout implements View.OnClick
     }
 
     public TimerTextView.TimerStatus getTimerStatus() {
-        return this.timerText.getCurrentTimerStatus();
+        return binding.timerText.getCurrentTimerStatus();
     }
 
     public void pauseTimer() {
-        this.timerText.pauseTimer();
+        this.binding.timerText.pauseTimer();
     }
 
     public void stopTimer() {
-        this.timerText.stopTimer();
-        fadeOutView(this.timerText);
+        binding.timerText.stopTimer();
+        fadeOutView(binding.timerText);
         disableAlarmView();
         this.model.setEvent(null);
         bus.post(new TimerModelUpdatedEvent(getTimerName(), model));
     }
 
     public void resumeTimer() {
-        this.timerText.startTimer();
-        fadeInView(this.timerText);
+        binding.timerText.startTimer();
+        fadeInView(binding.timerText);
     }
 
     public void resetTimer() {
-        this.timerText.resetTimer();
-        fadeInView(this.timerText);
+        binding.timerText.resetTimer();
+        fadeInView(binding.timerText);
 
         model.setEvent(new TimedEvent(System.currentTimeMillis()));
         if (model.getAlarmModel() != null && model.getAlarmModel().isAlarmEnabled()) {
@@ -253,45 +234,45 @@ public abstract class TimerLayout extends RelativeLayout implements View.OnClick
     }
 
     private void disableAlarmView() {
-        if (alarmText.getVisibility() == View.GONE) {
+        if (binding.alarmText.getVisibility() == View.GONE) {
             //do not animate if already on the screen
             return;
         }
-        alarmBtn.animate().alpha(INACTIVE_ALPHA).translationY(0).start();
-        alarmText.animate().translationY(0).alpha(0).withEndAction(new Runnable() {
+        binding.alarmBtn.animate().alpha(INACTIVE_ALPHA).translationY(0).start();
+        binding.alarmText.animate().translationY(0).alpha(0).withEndAction(new Runnable() {
             @Override
             public void run() {
-                alarmText.setVisibility(View.GONE);
+                binding.alarmText.setVisibility(View.GONE);
             }
         }).start();
     }
 
     private void enableAlarmView(int hours, int minutes, final boolean animate) {
-        alarmText.setText(String.format("%02d:%02d", hours, minutes));
+        binding.alarmText.setText(String.format("%02d:%02d", hours, minutes));
 
-        if (alarmText.getVisibility() == View.VISIBLE) {
+        if (binding.alarmText.getVisibility() == View.VISIBLE) {
             //do not animate if already on the screen
             return;
         }
 
-        alarmText.setVisibility(View.VISIBLE);
-        alarmText.setAlpha(0);
+        binding.alarmText.setVisibility(View.VISIBLE);
+        binding.alarmText.setAlpha(0);
         TypedValue outValue = new TypedValue();
         getResources().getValue(R.dimen.alarm_button_translate_y_factor, outValue, true);
         final float translateYFactor = outValue.getFloat();
-        alarmText.getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
+        binding.alarmText.getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
             @Override
             public boolean onPreDraw() {
-                alarmText.getViewTreeObserver().removeOnPreDrawListener(this);
-                float targetTranslateY = alarmText.getHeight() * translateYFactor;
+                binding.alarmText.getViewTreeObserver().removeOnPreDrawListener(this);
+                float targetTranslateY = binding.alarmText.getHeight() * translateYFactor;
                 if (animate) {
-                    alarmText.animate().translationY(targetTranslateY).alpha(ACTIVE_ALPHA).start();
-                    alarmBtn.animate().translationY(-targetTranslateY).alpha(ACTIVE_ALPHA).start();
+                    binding.alarmText.animate().translationY(targetTranslateY).alpha(ACTIVE_ALPHA).start();
+                    binding.alarmBtn.animate().translationY(-targetTranslateY).alpha(ACTIVE_ALPHA).start();
                 } else {
-                    alarmText.setAlpha(ACTIVE_ALPHA);
-                    alarmText.setTranslationY(targetTranslateY);
-                    alarmBtn.setAlpha(ACTIVE_ALPHA);
-                    alarmBtn.setTranslationY(-targetTranslateY);
+                    binding.alarmText.setAlpha(ACTIVE_ALPHA);
+                    binding.alarmText.setTranslationY(targetTranslateY);
+                    binding.alarmBtn.setAlpha(ACTIVE_ALPHA);
+                    binding.alarmBtn.setTranslationY(-targetTranslateY);
                 }
                 return true;
             }
@@ -303,24 +284,24 @@ public abstract class TimerLayout extends RelativeLayout implements View.OnClick
             return;
         }
 
-        if (timerText.getCurrentTimerStatus() == TimerTextView.TimerStatus.STOPPED) {
-            timerStartBtn.setImageResource(R.drawable.ic_action_play);
-            timerStopBtn.setVisibility(View.GONE);
+        if (binding.timerText.getCurrentTimerStatus() == TimerTextView.TimerStatus.STOPPED) {
+            binding.timerStart.setImageResource(R.drawable.ic_action_play);
+            binding.timerStop.setVisibility(View.GONE);
         } else {
-            timerStartBtn.setImageResource(R.drawable.ic_action_replay);
-            timerStopBtn.setVisibility(View.VISIBLE);
+            binding.timerStart.setImageResource(R.drawable.ic_action_replay);
+            binding.timerStop.setVisibility(View.VISIBLE);
         }
 
         isControlPanelVisible = true;
-        controlPanel.setOnFocusChangeListener(controlPanelFocusChangeListener);
-        controlPanel.setVisibility(View.VISIBLE);
-        controlPanel.requestFocus();
-        controlPanel.getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
+        binding.controlPanel.setOnFocusChangeListener(controlPanelFocusChangeListener);
+        binding.controlPanel.setVisibility(View.VISIBLE);
+        binding.controlPanel.requestFocus();
+        binding.controlPanel.getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
             @Override
             public boolean onPreDraw() {
-                controlPanel.getViewTreeObserver().removeOnPreDrawListener(this);
-                controlPanel.setTranslationX(controlPanel.getWidth());
-                controlPanel.animate().translationX(0).setInterpolator(new DecelerateInterpolator(2)).start();
+                binding.controlPanel.getViewTreeObserver().removeOnPreDrawListener(this);
+                binding.controlPanel.setTranslationX(binding.controlPanel.getWidth());
+                binding.controlPanel.animate().translationX(0).setInterpolator(new DecelerateInterpolator(2)).start();
                 return true;
             }
         });
@@ -331,11 +312,11 @@ public abstract class TimerLayout extends RelativeLayout implements View.OnClick
             return;
         }
         isControlPanelVisible = false;
-        controlPanel.setOnFocusChangeListener(null);
-        controlPanel.animate().translationX(controlPanel.getWidth()).setInterpolator(new DecelerateInterpolator(2)).withEndAction(new Runnable() {
+        binding.controlPanel.setOnFocusChangeListener(null);
+        binding.controlPanel.animate().translationX(binding.controlPanel.getWidth()).setInterpolator(new DecelerateInterpolator(2)).withEndAction(new Runnable() {
             @Override
             public void run() {
-                controlPanel.setVisibility(View.GONE);
+                binding.controlPanel.setVisibility(View.GONE);
             }
         });
     }
@@ -344,7 +325,7 @@ public abstract class TimerLayout extends RelativeLayout implements View.OnClick
     @Override
     public boolean onInterceptTouchEvent(MotionEvent ev) {
         if (isControlPanelVisible) {
-            if (ev.getX() < controlPanel.getLeft()) {
+            if (ev.getX() < binding.controlPanel.getLeft()) {
                 hideControlPanel();
                 return true;
             }

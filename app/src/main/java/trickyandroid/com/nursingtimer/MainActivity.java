@@ -1,22 +1,22 @@
 package trickyandroid.com.nursingtimer;
 
 import android.app.Activity;
+import android.databinding.DataBindingUtil;
 import android.os.Bundle;
 import android.view.Menu;
 
 import com.colintmiller.simplenosql.NoSQL;
 import com.colintmiller.simplenosql.NoSQLEntity;
-import com.colintmiller.simplenosql.RetrievalCallback;
 import com.squareup.otto.Bus;
 import com.squareup.otto.Subscribe;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.inject.Inject;
 
-import butterknife.BindViews;
-import butterknife.ButterKnife;
 import trickyandroid.com.nursingtimer.bus.TimerModelUpdatedEvent;
+import trickyandroid.com.nursingtimer.databinding.ActivityMainBinding;
 import trickyandroid.com.nursingtimer.models.TimerModel;
 import trickyandroid.com.nursingtimer.widgets.TimerLayout;
 import trickyandroid.com.nursingtimer.widgets.TimerTextView;
@@ -24,31 +24,36 @@ import trickyandroid.com.nursingtimer.widgets.TimerTextView;
 
 public class MainActivity extends Activity {
 
+    ActivityMainBinding binding;
+
     @Inject
     Bus bus;
 
-    @BindViews({ R.id.feedingTimer, R.id.poopTimer, R.id.sleepTimer, R.id.otherTimer })
-    List<TimerLayout> timers;
+    List<TimerLayout> timers = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         TimerApplication.get().getGraph().inject(this);
-        setContentView(R.layout.activity_main);
+        binding = DataBindingUtil.setContentView(this, R.layout.activity_main);
+        initTimers();
 
-        ButterKnife.bind(this);
         if (savedInstanceState == null) {
             for (final TimerLayout t : timers) {
-                NoSQL.with(this).using(TimerModel.class).bucketId("timers").entityId(t.getTimerName()).retrieve(new RetrievalCallback<TimerModel>() {
-                    @Override
-                    public void retrievedResults(List<NoSQLEntity<TimerModel>> noSQLEntities) {
-                        if (noSQLEntities != null && !noSQLEntities.isEmpty()) {
-                            t.setModel(noSQLEntities.get(0).getData());
-                        }
+                NoSQL.with(this).using(TimerModel.class).bucketId("timers").entityId(t.getTimerName()).retrieve(entities -> {
+                    if (entities != null && !entities.isEmpty()) {
+                        t.setModel(entities.get(0).getData());
                     }
                 });
             }
         }
+    }
+
+    private void initTimers() {
+        this.timers.add(binding.feedingTimer);
+        this.timers.add(binding.poopTimer);
+        this.timers.add(binding.otherTimer);
+        this.timers.add(binding.sleepTimer);
     }
 
     @Override
@@ -68,9 +73,10 @@ public class MainActivity extends Activity {
         super.onStop();
     }
 
+    @SuppressWarnings("unused")
     @Subscribe
     public void onTimerModelUpdatedReceived(TimerModelUpdatedEvent event) {
-        NoSQLEntity entity = new NoSQLEntity<TimerModel>("timers", String.valueOf(event.timerName));
+        NoSQLEntity<TimerModel> entity = new NoSQLEntity<>("timers", String.valueOf(event.timerName));
         entity.setData(event.model);
         NoSQL.with(this).using(TimerModel.class).save(entity);
     }
