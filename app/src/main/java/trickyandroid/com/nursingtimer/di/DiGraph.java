@@ -1,4 +1,4 @@
-package trickyandroid.com.nursingtimer.dagger;
+package trickyandroid.com.nursingtimer.di;
 
 import javax.inject.Singleton;
 
@@ -8,7 +8,7 @@ import trickyandroid.com.nursingtimer.widgets.TimerLayout;
 
 @Singleton
 @Component(modules = BusModule.class)
-public interface MainComponent {
+public interface DiGraph {
     void inject(MainActivity mainActivity);
 
     void inject(TimerLayout timerLayout);

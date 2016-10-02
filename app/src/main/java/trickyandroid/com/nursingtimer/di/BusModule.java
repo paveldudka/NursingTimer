@@ -1,4 +1,4 @@
-package trickyandroid.com.nursingtimer.dagger;
+package trickyandroid.com.nursingtimer.di;
 
 import com.squareup.otto.Bus;
 

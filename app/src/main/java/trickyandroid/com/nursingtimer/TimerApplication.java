@@ -1,18 +1,17 @@
 package trickyandroid.com.nursingtimer;
 
 import android.app.Application;
-import android.content.Context;
 
-import trickyandroid.com.nursingtimer.dagger.BusModule;
-import trickyandroid.com.nursingtimer.dagger.DaggerMainComponent;
-import trickyandroid.com.nursingtimer.dagger.MainComponent;
+import trickyandroid.com.nursingtimer.di.BusModule;
+import trickyandroid.com.nursingtimer.di.DaggerDiGraph;
+import trickyandroid.com.nursingtimer.di.DiGraph;
 
 /**
  * Created by paveld on 10/4/14.
  */
 public class TimerApplication extends Application {
     private static TimerApplication instance;
-    private MainComponent graph;
+    private DiGraph graph;
 
     @Override
     public void onCreate() {
@@ -22,12 +21,12 @@ public class TimerApplication extends Application {
     }
 
     public void buildObjectGraphAndInject() {
-        graph = DaggerMainComponent.builder()
+        graph = DaggerDiGraph.builder()
                 .busModule(new BusModule())
                 .build();
     }
 
-    public MainComponent getGraph() {
+    public DiGraph getGraph() {
         return graph;
     }
 
