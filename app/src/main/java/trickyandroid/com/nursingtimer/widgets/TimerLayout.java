@@ -131,7 +131,7 @@ public abstract class TimerLayout extends RelativeLayout implements View.OnClick
                 hideControlPanel();
                 Utils.getPulseAnimator(binding.timerText, .95f, 1.05f).start();
                 break;
-            case R.id.timer:
+            case R.id.timerText:
                 showControlPanel();
                 break;
             case R.id.alarmBtn:
