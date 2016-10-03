@@ -6,43 +6,37 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:clickable="true"
+        android:divider="?android:listDivider"
         android:focusable="true"
         android:focusableInTouchMode="true"
         android:orientation="vertical"
+        android:showDividers="middle"
         tools:context=".MainActivity">
 
-        <LinearLayout
+        <trickyandroid.com.nursingtimer.widgets.FeedingTimer
+            android:id="@+id/feedingTimer"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:divider="?android:listDivider"
-            android:orientation="vertical"
-            android:showDividers="middle">
+            android:layout_height="0dip"
+            android:layout_weight="1"/>
 
-            <trickyandroid.com.nursingtimer.widgets.FeedingTimer
-                android:id="@+id/feedingTimer"
-                android:layout_width="match_parent"
-                android:layout_height="0dip"
-                android:layout_weight="1"/>
+        <trickyandroid.com.nursingtimer.widgets.PoopTimer
+            android:id="@+id/poopTimer"
+            android:layout_width="match_parent"
+            android:layout_height="0dip"
+            android:layout_weight="1"/>
 
-            <trickyandroid.com.nursingtimer.widgets.PoopTimer
-                android:id="@+id/poopTimer"
-                android:layout_width="match_parent"
-                android:layout_height="0dip"
-                android:layout_weight="1"/>
+        <trickyandroid.com.nursingtimer.widgets.SleepTimer
+            android:id="@+id/sleepTimer"
+            android:layout_width="match_parent"
+            android:layout_height="0dip"
+            android:layout_weight="1"/>
 
-            <trickyandroid.com.nursingtimer.widgets.SleepTimer
-                android:id="@+id/sleepTimer"
-                android:layout_width="match_parent"
-                android:layout_height="0dip"
-                android:layout_weight="1"/>
+        <trickyandroid.com.nursingtimer.widgets.OtherTimer
+            android:id="@+id/otherTimer"
+            android:layout_width="match_parent"
+            android:layout_height="0dip"
+            android:layout_weight="1"/>
 
-            <trickyandroid.com.nursingtimer.widgets.OtherTimer
-                android:id="@+id/otherTimer"
-                android:layout_width="match_parent"
-                android:layout_height="0dip"
-                android:layout_weight="1"/>
-
-        </LinearLayout>
     </LinearLayout>
 </layout>
 
